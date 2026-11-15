@@ -53,7 +53,10 @@
         "check:fix": "biome check --write",
         "typecheck": "tsc --noEmit",
         "test": "pnpm build && vitest run",
-        "mcp:inspect": "pnpm build && pnpm dlx @modelcontextprotocol/inspector node dist/cli.mjs mcp"
+        "mcp:inspect": "pnpm build && pnpm dlx @modelcontextprotocol/inspector node dist/cli.mjs mcp",
+        "check:package": "pnpm build && node scripts/check-package.ts",
+        "changeset": "changeset",
+        "release:version": "changeset version"
     },
     "dependencies": {
         "@modelcontextprotocol/server": "2.4.0",
@@ -62,9 +65,13 @@
         "zod": "4.6.7"
     },
     "devDependencies": {
+        "@arethetypeswrong/cli": "0.18.5",
         "@biomejs/biome": "2.6.6",
+        "@changesets/changelog-github": "1.0.1",
+        "@changesets/cli": "3.0.3",
         "@modelcontextprotocol/client": "2.4.0",
         "@types/node": "24.19.2",
+        "publint": "0.3.24",
         "tsdown": "0.23.7",
         "typescript": "7.0.2",
         "vitest": "5.1.0"

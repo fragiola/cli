@@ -15,7 +15,9 @@
             "**/*.jsonc",
             "**/*.css",
             "**/*.mdx",
-            "**/*.md"
+            "**/*.md",
+            "!.changeset/*.md",
+            "!CHANGELOG.md"
         ]
     },
     "formatter": {
