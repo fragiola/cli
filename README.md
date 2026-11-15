@@ -95,6 +95,9 @@ args = ["fragiola@latest", "mcp"]
   `PATH`, then restart the client.
 - **"does not serve the Fragiola agent index".** The server cannot read `/agents/index.json`.
   Check `FRAGIOLA_URL` (unset it to use fragiola.com) and the network.
+- **"is not valid JSON".** `mcp init` reads plain JSON only. A config file with comments (JSONC,
+  common in `.vscode/mcp.json` and `opencode.json`) is left untouched: add the entry by hand from
+  [Manual configuration](#manual-configuration).
 - **No tools listed.** Make sure the client enabled the `fragiola` server, and restart it after
   `mcp init`.
 - **Outdated answers.** Responses are cached for one session: restart the server (or the client).

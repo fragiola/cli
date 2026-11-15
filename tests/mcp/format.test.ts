@@ -215,6 +215,33 @@ describe("formatInstall", () => {
         );
         expect(text).toContain("Not found: nope.");
     });
+
+    it("names the other kind of a shared name instead of dropping it", () => {
+        const component = ui.components[0];
+        if (!component) throw new Error("fixture");
+        const text = formatInstall(
+            [
+                {
+                    name: "dockable",
+                    found: [
+                        {
+                            type: "library",
+                            project: library,
+                            packages: library.packages,
+                        },
+                        { type: "component", project: ui, component },
+                    ],
+                },
+            ],
+            undefined,
+        );
+        expect(text).toContain(
+            "npm install @fragiola/dockable @fragiola/dockable-react",
+        );
+        expect(text).toContain(
+            '"dockable" is also a Fragiola UI component (source code)',
+        );
+    });
 });
 
 describe("formatError", () => {

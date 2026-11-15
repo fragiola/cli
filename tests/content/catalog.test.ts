@@ -96,6 +96,27 @@ describe("pages", () => {
         expect(await catalog.overview()).toContain("Fragiola UI");
     });
 
+    it("refuses an ambiguous last segment, and never guesses a page from a wrong path", async () => {
+        const ambiguous = (await catalog
+            .page("dockable", "model")
+            .catch((reason: unknown) => reason)) as ContentError;
+        expect(ambiguous.code).toBe("AMBIGUOUS");
+        expect(ambiguous.message).toContain("concepts/model, api/model");
+        const wrong = (await catalog
+            .page("dockable", "nonexistent/tab")
+            .catch((reason: unknown) => reason)) as ContentError;
+        expect(wrong.code).toBe("NOT_FOUND");
+    });
+
+    it("prefers API pages for a library's API lookups", async () => {
+        expect((await catalog.apiPage("dockable", "model")).page.path).toBe(
+            "api/model",
+        );
+        expect(
+            (await catalog.apiPage("dockable", "concepts/model")).page.path,
+        ).toBe("concepts/model");
+    });
+
     it("points to the page list when a page does not exist", async () => {
         const error = (await catalog
             .page("dockable", "api/nope")

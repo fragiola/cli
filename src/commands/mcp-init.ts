@@ -16,6 +16,8 @@ export type Client = {
     /** The project file to write, or none (the client keeps its config elsewhere). */
     configPath?: string;
     config?: Record<string, unknown>;
+    /** Where the fragiola server sits in `config`: replaced wholesale on every run. */
+    entry?: readonly string[];
     /** What to tell the user after writing (or instead of writing). */
     next: string;
 };
@@ -25,6 +27,7 @@ export const CLIENTS: readonly Client[] = [
         name: "claude",
         label: "Claude Code",
         configPath: ".mcp.json",
+        entry: ["mcpServers", "fragiola"],
         config: {
             mcpServers: {
                 fragiola: { ...SERVER_COMMAND, args: [...SERVER_COMMAND.args] },
@@ -36,6 +39,7 @@ export const CLIENTS: readonly Client[] = [
         name: "cursor",
         label: "Cursor",
         configPath: ".cursor/mcp.json",
+        entry: ["mcpServers", "fragiola"],
         config: {
             mcpServers: {
                 fragiola: { ...SERVER_COMMAND, args: [...SERVER_COMMAND.args] },
@@ -47,6 +51,7 @@ export const CLIENTS: readonly Client[] = [
         name: "vscode",
         label: "VS Code",
         configPath: ".vscode/mcp.json",
+        entry: ["servers", "fragiola"],
         config: {
             servers: {
                 fragiola: { ...SERVER_COMMAND, args: [...SERVER_COMMAND.args] },
@@ -58,6 +63,7 @@ export const CLIENTS: readonly Client[] = [
         name: "opencode",
         label: "OpenCode",
         configPath: "opencode.json",
+        entry: ["mcp", "fragiola"],
         config: {
             $schema: "https://opencode.ai/config.json",
             mcp: {
@@ -157,7 +163,7 @@ export async function initClient(
         return undefined;
     }
     const file = resolve(options.cwd, client.configPath);
-    await mergeJsonFile(file, client.config);
+    await mergeJsonFile(file, client.config, client.entry);
     print(
         `Configured the Fragiola MCP server for ${client.label} in ${client.configPath}.`,
     );

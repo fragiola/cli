@@ -124,6 +124,27 @@ describe("fragiola mcp init", () => {
         });
     });
 
+    it("replaces an older fragiola entry instead of merging into it", async () => {
+        await writeFile(
+            join(cwd, ".mcp.json"),
+            JSON.stringify({
+                mcpServers: {
+                    fragiola: {
+                        type: "http",
+                        url: "https://old.test/mcp",
+                        env: { X: "1" },
+                    },
+                },
+            }),
+        );
+        await init("claude");
+        expect(await readJson(".mcp.json")).toEqual({
+            mcpServers: {
+                fragiola: { command: "npx", args: ["fragiola@latest", "mcp"] },
+            },
+        });
+    });
+
     it("refuses invalid JSON and leaves the file untouched", async () => {
         await writeFile(join(cwd, ".mcp.json"), "{ broken");
         await expect(init("claude")).rejects.toThrow(

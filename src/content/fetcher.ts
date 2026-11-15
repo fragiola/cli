@@ -53,6 +53,24 @@ export function createContentClient(
         return `${baseUrl}${path.startsWith("/") ? "" : "/"}${path}`;
     }
 
+    function networkError(target: string, cause: unknown): ContentError {
+        const timedOut =
+            cause instanceof DOMException && cause.name === "TimeoutError";
+        return new ContentError(
+            timedOut ? "TIMEOUT" : "NETWORK",
+            timedOut
+                ? `No answer from ${target} after ${timeoutMs} ms.`
+                : `Could not reach ${target}.`,
+            {
+                url: target,
+                cause,
+                suggestion: `Check the network connection. The base URL is ${baseUrl}${
+                    process.env.FRAGIOLA_URL ? " (from FRAGIOLA_URL)" : ""
+                }.`,
+            },
+        );
+    }
+
     async function load(target: string): Promise<string> {
         let response: Response;
         try {
@@ -60,26 +78,15 @@ export function createContentClient(
                 signal: AbortSignal.timeout(timeoutMs),
             });
         } catch (cause) {
-            const timedOut =
-                cause instanceof DOMException && cause.name === "TimeoutError";
-            throw new ContentError(
-                timedOut ? "TIMEOUT" : "NETWORK",
-                timedOut
-                    ? `No answer from ${target} after ${timeoutMs} ms.`
-                    : `Could not reach ${target}.`,
-                {
-                    url: target,
-                    cause,
-                    suggestion: `Check the network connection. The base URL is ${baseUrl}${
-                        process.env.FRAGIOLA_URL ? " (from FRAGIOLA_URL)" : ""
-                    }.`,
-                },
-            );
+            throw networkError(target, cause);
         }
         if (!response.ok) {
             throw new ContentError(
                 response.status === 404 ? "NOT_FOUND" : "HTTP",
-                `${target} answered ${response.status} ${response.statusText}.`.trim(),
+                `${target} answered ${response.status} ${response.statusText}.`.replace(
+                    " .",
+                    ".",
+                ),
                 {
                     url: target,
                     suggestion:
@@ -89,7 +96,12 @@ export function createContentClient(
                 },
             );
         }
-        return response.text();
+        // The timeout still applies while the body downloads, and a connection can drop mid-body.
+        try {
+            return await response.text();
+        } catch (cause) {
+            throw networkError(target, cause);
+        }
     }
 
     function text(path: string): Promise<string> {
@@ -98,7 +110,11 @@ export function createContentClient(
         if (!pending) {
             pending = load(target);
             // A failed request is not cached: the next call tries again.
-            pending.catch(() => cache.delete(target));
+            const current = pending;
+            current.catch(() => {
+                // Only this request's entry: a newer one (after clear()) stays.
+                if (cache.get(target) === current) cache.delete(target);
+            });
             cache.set(target, pending);
         }
         return pending;
@@ -115,6 +131,8 @@ export function createContentClient(
                 {
                     url: url(path),
                     cause,
+                    suggestion:
+                        "fragiola.com served a broken file. Try again shortly; if it persists, report it at https://github.com/fragiola/www/issues.",
                 },
             );
         }
@@ -183,6 +201,8 @@ export function createContentClient(
                 `${url(path)} is not a registry item.`,
                 {
                     url: url(path),
+                    suggestion:
+                        "Upgrade fragiola (`npx fragiola@latest mcp`) or report it at https://github.com/fragiola/www/issues.",
                 },
             );
         }

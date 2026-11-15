@@ -27,28 +27,11 @@ export function registerGetApi(server: McpServer, catalog: Catalog): void {
             const index = await catalog.index();
             const owner = await catalog.project(project);
             if (!name) return formatApiList(owner);
-            const api = owner.pages.filter((page) => page.api);
-            const wanted = name.trim().replace(/^\/+|\/+$/g, "");
-            const page =
-                api.find((candidate) => candidate.path === wanted) ??
-                api.find(
-                    (candidate) =>
-                        candidate.path.split("/").at(-1) ===
-                        wanted.split("/").at(-1),
-                );
-            if (!page) {
-                const found = await catalog.page(owner.slug, wanted);
-                return formatPage(
-                    found.project,
-                    found.page,
-                    await catalog.markdown(found.page),
-                    index.site,
-                );
-            }
+            const found = await catalog.apiPage(owner.slug, name);
             return formatPage(
-                owner,
-                page,
-                await catalog.markdown(page),
+                found.project,
+                found.page,
+                await catalog.markdown(found.page),
                 index.site,
             );
         }),

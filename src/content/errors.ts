@@ -5,7 +5,8 @@ export type ContentErrorCode =
     | "INVALID_JSON"
     | "INVALID_INDEX"
     | "UNSUPPORTED_VERSION"
-    | "NOT_FOUND";
+    | "NOT_FOUND"
+    | "AMBIGUOUS";
 
 /**
  * Everything that can go wrong while reading fragiola.com. The MCP tools turn

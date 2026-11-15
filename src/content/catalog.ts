@@ -131,27 +131,60 @@ export function createCatalog(client: ContentClient) {
         return result;
     }
 
+    /**
+     * A page of `owner` by its exact path or, when the input has no `/`, by its
+     * last segment if exactly one page ends with it. Several matches are an
+     * error that lists them, never a silent pick.
+     */
+    function findPage(owner: Project, pages: Page[], input: string): Page {
+        const wanted = normalize(input).replace(/^docs\//, "");
+        const exact = pages.find((candidate) => candidate.path === wanted);
+        if (exact) return exact;
+        const matches = wanted.includes("/")
+            ? []
+            : pages.filter((candidate) => leaf(candidate.path) === wanted);
+        if (matches.length === 1 && matches[0]) return matches[0];
+        if (matches.length > 1) {
+            throw new ContentError(
+                "AMBIGUOUS",
+                `"${input}" matches ${matches.length} pages of ${owner.title}: ${matches.map((candidate) => candidate.path).join(", ")}.`,
+                {
+                    suggestion:
+                        "Call again with the full path of the page you need.",
+                },
+            );
+        }
+        throw new ContentError(
+            "NOT_FOUND",
+            `${owner.title} has no docs page "${input}".`,
+            {
+                suggestion: `Call get_docs with project "${owner.slug}" and no path to list its pages.`,
+            },
+        );
+    }
+
     async function page(
         slug: string,
         path: string,
     ): Promise<{ project: Project; page: Page }> {
         const owner = await project(slug);
-        const wanted = normalize(path).replace(/^docs\//, "");
-        const found =
-            owner.pages.find((candidate) => candidate.path === wanted) ??
-            owner.pages.find(
-                (candidate) => leaf(candidate.path) === leaf(wanted),
-            );
-        if (!found) {
-            throw new ContentError(
-                "NOT_FOUND",
-                `${owner.title} has no docs page "${path}".`,
-                {
-                    suggestion: `Call get_docs with project "${owner.slug}" and no path to list its pages.`,
-                },
-            );
+        return { project: owner, page: findPage(owner, owner.pages, path) };
+    }
+
+    /** An API page of a library, else any of its pages (same matching rules as `page`). */
+    async function apiPage(
+        slug: string,
+        name: string,
+    ): Promise<{ project: Project; page: Page }> {
+        const owner = await project(slug);
+        const api = owner.pages.filter((candidate) => candidate.api);
+        try {
+            return { project: owner, page: findPage(owner, api, name) };
+        } catch (error) {
+            if (error instanceof ContentError && error.code === "AMBIGUOUS")
+                throw error;
+            return { project: owner, page: findPage(owner, owner.pages, name) };
         }
-        return { project: owner, page: found };
     }
 
     function markdown(target: Page): Promise<string> {
@@ -187,38 +220,50 @@ export function createCatalog(client: ContentClient) {
         if (owner) {
             const path = rest.join("/");
             const component = owner.components.find(
-                (candidate) => candidate.name === leaf(path),
+                (candidate) => candidate.name === path,
             );
             if (component)
                 found.push({ type: "component", project: owner, component });
-            const match =
-                owner.pages.find((candidate) => candidate.path === path) ??
-                owner.pages.find(
-                    (candidate) =>
-                        candidate.api && leaf(candidate.path) === leaf(path),
-                ) ??
-                owner.pages.find(
-                    (candidate) => leaf(candidate.path) === leaf(path),
+            if (owner.kind === "library") {
+                const match = await apiPage(owner.slug, path).catch(
+                    (error: unknown) => {
+                        if (
+                            error instanceof ContentError &&
+                            error.code === "NOT_FOUND"
+                        )
+                            return undefined;
+                        throw error;
+                    },
                 );
-            if (match && owner.kind === "library")
-                found.push({ type: "api-page", project: owner, page: match });
+                if (match)
+                    found.push({
+                        type: "api-page",
+                        project: owner,
+                        page: match.page,
+                    });
+            }
             return found;
         }
 
         // `@fragiola/dockable-react`, `dockable`: a library, or one of its packages.
         for (const candidate of all) {
             if (candidate.kind !== "library") continue;
-            const packages = candidate.packages.filter(
-                (pkg) => pkg.name.toLowerCase() === raw,
-            );
-            if (packages.length > 0)
-                found.push({ type: "library", project: candidate, packages });
-            else if (candidate.slug === wanted)
+            // A bare slug is the whole library; a package name (scoped or not) is that package.
+            if (candidate.slug === wanted && !raw.startsWith("@")) {
                 found.push({
                     type: "library",
                     project: candidate,
                     packages: candidate.packages,
                 });
+                continue;
+            }
+            const packages = candidate.packages.filter(
+                (pkg) =>
+                    pkg.name.toLowerCase() === raw ||
+                    normalize(pkg.name) === wanted,
+            );
+            if (packages.length > 0)
+                found.push({ type: "library", project: candidate, packages });
         }
 
         // `select`, `@fragiola/select`: a Fragiola UI component.
@@ -287,6 +332,7 @@ export function createCatalog(client: ContentClient) {
         project,
         entries,
         page,
+        apiPage,
         markdown,
         overview,
         registryItem,

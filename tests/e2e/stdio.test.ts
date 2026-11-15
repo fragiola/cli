@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { Client, type ClientOptions } from "@modelcontextprotocol/client";
 import {
@@ -57,14 +57,70 @@ describe("fragiola mcp over stdio", () => {
         }
     });
 
-    it("writes nothing to stdout but the protocol", () => {
-        // stdin is closed at once: the server starts, writes nothing, and exits.
-        const run = spawnSync("node", [bin, "mcp"], {
-            input: "",
-            encoding: "utf8",
-            env: { ...process.env, FRAGIOLA_URL: site.url },
-            timeout: 10_000,
+    it("writes nothing to stdout but the protocol, even when a tool fails", async () => {
+        // The site answers 503 to everything, so the tool fails and its error is logged.
+        const down = await startServer((_request, response) => {
+            response.writeHead(503, "Service Unavailable").end();
+            return true;
         });
-        expect(run.stdout).toBe("");
+        const child = spawn("node", [bin, "mcp"], {
+            env: { ...process.env, FRAGIOLA_URL: down.url },
+            stdio: ["pipe", "pipe", "pipe"],
+        });
+        let stdout = "";
+        let stderr = "";
+        child.stdout.setEncoding("utf8").on("data", (chunk: string) => {
+            stdout += chunk;
+        });
+        child.stderr.setEncoding("utf8").on("data", (chunk: string) => {
+            stderr += chunk;
+        });
+        const send = (message: object) =>
+            child.stdin.write(`${JSON.stringify(message)}\n`);
+        const waitFor = async (id: number) => {
+            for (let tries = 0; tries < 200; tries += 1) {
+                if (
+                    stdout
+                        .split("\n")
+                        .some((line) => line.includes(`"id":${id}`))
+                )
+                    return;
+                await new Promise((resolve) => setTimeout(resolve, 25));
+            }
+            throw new Error(
+                `No response ${id}. stdout: ${stdout} stderr: ${stderr}`,
+            );
+        };
+        try {
+            send({
+                jsonrpc: "2.0",
+                id: 1,
+                method: "initialize",
+                params: {
+                    protocolVersion: "2025-11-25",
+                    capabilities: {},
+                    clientInfo: { name: "raw", version: "0.0.0" },
+                },
+            });
+            await waitFor(1);
+            send({ jsonrpc: "2.0", method: "notifications/initialized" });
+            send({
+                jsonrpc: "2.0",
+                id: 2,
+                method: "tools/call",
+                params: { name: "list_projects", arguments: {} },
+            });
+            await waitFor(2);
+        } finally {
+            child.stdin.end();
+            await new Promise((resolve) => child.once("close", resolve));
+            await down.close();
+        }
+        const lines = stdout.split("\n").filter((line) => line.trim() !== "");
+        expect(lines.length).toBeGreaterThanOrEqual(2);
+        for (const line of lines)
+            expect(JSON.parse(line)).toMatchObject({ jsonrpc: "2.0" });
+        expect(stdout).toContain('"isError":true');
+        expect(stderr).toContain("list_projects failed");
     });
 });

@@ -196,6 +196,28 @@ describe("get_component", () => {
     });
 });
 
+describe("get_component isolation", () => {
+    it("keeps the other names' results when one of them fails", async () => {
+        const partial = await startServer((request, response) => {
+            if (request.url !== "/r/clickable.json") return false;
+            response.writeHead(500, "Internal Server Error").end();
+            return true;
+        });
+        const client = await connect(partial.url);
+        try {
+            const { text, isError } = await client.call("get_component", {
+                names: ["clickable", "select"],
+            });
+            expect(isError).toBe(false);
+            expect(text).toContain("clickable: Error (HTTP)");
+            expect(text).toContain("## Select (Fragiola UI `select`)");
+        } finally {
+            await client.close();
+            await partial.close();
+        }
+    });
+});
+
 describe("get_docs", () => {
     it("lists a project's pages by section", async () => {
         const { text } = await mcp.call("get_docs", { project: "dockable" });
@@ -212,6 +234,15 @@ describe("get_docs", () => {
             "Source: https://fragiola.com/ui/docs/fields/select/ (Fragiola UI › Fields)",
         );
         expect(text).toContain("# Select");
+    });
+
+    it("asks for the full path when the last segment is ambiguous", async () => {
+        const { text, isError } = await mcp.call("get_docs", {
+            project: "dockable",
+            path: "model",
+        });
+        expect(isError).toBe(true);
+        expect(text).toContain("Error (AMBIGUOUS)");
     });
 
     it("reports a missing page", async () => {
@@ -245,6 +276,16 @@ describe("get_api", () => {
 });
 
 describe("get_install_command", () => {
+    it("names the other kind of a shared name", async () => {
+        const { text } = await mcp.call("get_install_command", {
+            items: ["dockable"],
+        });
+        expect(text).toContain(
+            "npm install @fragiola/dockable @fragiola/dockable-react",
+        );
+        expect(text).toContain("npx shadcn@latest add @fragiola/dockable");
+    });
+
     it("separates UI components from libraries", async () => {
         const { text } = await mcp.call("get_install_command", {
             items: ["select", "grid-layout"],

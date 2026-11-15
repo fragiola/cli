@@ -58,11 +58,38 @@ export async function readJsonFile(file: string): Promise<JsonObject> {
 }
 
 /** Merges `patch` into the JSON file (created with its folders when missing). */
+/** `base` without the value at `path` (a copy; `base` is not changed). */
+export function withoutPath(
+    base: JsonObject,
+    path: readonly string[],
+): JsonObject {
+    const [head, ...rest] = path;
+    if (head === undefined || !(head in base)) return base;
+    const result: JsonObject = { ...base };
+    if (rest.length === 0) {
+        delete result[head];
+        return result;
+    }
+    const child = result[head];
+    if (isObject(child)) result[head] = withoutPath(child, rest);
+    return result;
+}
+
+/**
+ * Merges `patch` into the JSON file (created with its folders when missing).
+ * The value at `replace` is replaced wholesale, not merged, so no stale key of
+ * an older entry survives.
+ */
 export async function mergeJsonFile(
     file: string,
     patch: JsonObject,
+    replace?: readonly string[],
 ): Promise<JsonObject> {
-    const merged = mergeJson(await readJsonFile(file), patch);
+    const current = await readJsonFile(file);
+    const merged = mergeJson(
+        replace ? withoutPath(current, replace) : current,
+        patch,
+    );
     await mkdir(dirname(file), { recursive: true });
     await writeFile(file, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
     return merged;

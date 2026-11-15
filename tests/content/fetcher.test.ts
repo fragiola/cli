@@ -164,4 +164,50 @@ describe("the content client", () => {
             "TIMEOUT",
         );
     });
+
+    it("maps a failure while reading the body", async () => {
+        const broken = createContentClient({
+            baseUrl: "http://example.test",
+            fetch: async () =>
+                ({
+                    ok: true,
+                    status: 200,
+                    statusText: "OK",
+                    text: () =>
+                        Promise.reject(
+                            new DOMException(
+                                "The operation timed out.",
+                                "TimeoutError",
+                            ),
+                        ),
+                }) as unknown as Response,
+        });
+        const error = await rejection(broken.text("/agents/overview.md"));
+        expect(error.code).toBe("TIMEOUT");
+        expect(error.suggestion).toBeTruthy();
+    });
+
+    it("keeps a newer cache entry when an older request fails after clear()", async () => {
+        let calls = 0;
+        let failFirst: (reason: unknown) => void = () => {};
+        const client = createContentClient({
+            baseUrl: "http://example.test",
+            fetch: () => {
+                calls += 1;
+                if (calls === 1) {
+                    return new Promise<Response>((_resolve, reject) => {
+                        failFirst = reject;
+                    });
+                }
+                return Promise.resolve(new Response("fresh"));
+            },
+        });
+        const first = client.text("/a.md");
+        client.clear();
+        expect(await client.text("/a.md")).toBe("fresh");
+        failFirst(new TypeError("fetch failed"));
+        await rejection(first);
+        expect(await client.text("/a.md")).toBe("fresh");
+        expect(calls).toBe(2);
+    });
 });

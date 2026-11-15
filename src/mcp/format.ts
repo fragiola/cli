@@ -232,6 +232,9 @@ export function formatSearch(
         return `No Fragiola components or docs pages match "${query}". Try a broader term, or list_components.`;
     }
     const shown = paginate(hits, window);
+    if (shown.length === 0) {
+        return `There are ${hits.length} results for "${query}"; offset ${window.offset} is past the end. Use a smaller offset.`;
+    }
     const lines: string[] = [
         `Found ${hits.length} results for "${query}".`,
         "",
@@ -460,21 +463,26 @@ export function formatInstall(
     const components = new Set<string>();
     const packages = new Set<string>();
     const unknown: string[] = [];
+    const alsoNamed: string[] = [];
     for (const { name, found } of resolved) {
         const first = found[0];
         if (!first) {
             unknown.push(name);
             continue;
         }
-        // An exact package name or a library slug installs the library; a
-        // component name adds the component.
-        if (first.type === "component")
+        // The first meaning is installed (a library slug or package name before
+        // a component of the same name); the others are named, never dropped.
+        if (first.type === "component") {
             components.add(registryName(first.component, registry?.namespace));
-        else if (first.type === "library") {
-            const project = first.project;
-            for (const pkg of project.packages) packages.add(pkg.name);
         } else {
             for (const pkg of first.project.packages) packages.add(pkg.name);
+        }
+        for (const other of found.slice(1)) {
+            alsoNamed.push(
+                other.type === "component"
+                    ? `"${name}" is also a Fragiola UI component (source code): \`${addCommand([registryName(other.component, registry?.namespace)])}\`.`
+                    : `"${name}" is also the ${other.project.title} library (npm packages): \`${installCommands(other.project.packages.map((pkg) => pkg.name))[0]}\`.`,
+            );
         }
     }
     const lines: string[] = [];
@@ -505,6 +513,14 @@ export function formatInstall(
             `${npm}`,
             `# or: ${pnpm}`,
             "```",
+            "",
+        );
+    }
+    if (alsoNamed.length > 0) {
+        lines.push(
+            "## Same name, other kind",
+            "",
+            ...alsoNamed.map((line) => `- ${line}`),
             "",
         );
     }
