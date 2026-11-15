@@ -1,4 +1,5 @@
 import { Command } from "commander";
+import { mcpCommand } from "./commands/mcp.ts";
 import { pkg } from "./lib/package.ts";
 
 /** Builds the `fragiola` program. Subcommands are registered here. */
@@ -9,6 +10,8 @@ export function createProgram(): Command {
             "The Fragiola CLI. Gives AI agents Fragiola UI (source components) and the Fragiola libraries (npm packages) through an MCP server.",
         )
         .version(pkg.version, "-v, --version", "print the version");
+
+    program.addCommand(mcpCommand());
 
     return program;
 }

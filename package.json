@@ -56,12 +56,14 @@
         "mcp:inspect": "pnpm build && pnpm dlx @modelcontextprotocol/inspector node dist/cli.mjs mcp"
     },
     "dependencies": {
+        "@modelcontextprotocol/server": "2.4.0",
         "commander": "15.1.0",
         "fuzzysort": "4.0.2",
         "zod": "4.6.7"
     },
     "devDependencies": {
         "@biomejs/biome": "2.6.6",
+        "@modelcontextprotocol/client": "2.4.0",
         "@types/node": "24.19.2",
         "tsdown": "0.23.7",
         "typescript": "7.0.2",
