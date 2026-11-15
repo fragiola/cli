@@ -1,0 +1,19 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+*.tgz
+
+# Test output
+coverage/
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Env files
+.env
+.env.*
+
+# Epic worktrees
+.worktrees/
