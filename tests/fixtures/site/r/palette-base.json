@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "palette-base",
+    "type": "registry:file",
+    "title": "Base palette",
+    "description": "The default palette's six roles.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+        {
+            "path": "registry/palette/palette-base.tsx",
+            "type": "registry:file",
+            "target": "@components/atoms/palette-base.tsx",
+            "content": "export function Basepalette() {\n    return null;\n}\n"
+        }
+    ]
+}

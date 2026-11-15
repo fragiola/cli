@@ -1,0 +1,4 @@
+# Dependencies are pinned to exact versions published at least 7 days ago.
+minimumReleaseAge: 10080
+allowBuilds:
+  esbuild: true

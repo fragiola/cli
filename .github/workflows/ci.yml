@@ -1,0 +1,46 @@
+# CI: check, typecheck, test and build the `fragiola` package.
+#
+# Runs on pull requests, on pushes to main and on a manual run. Publishing is not
+# wired yet: it will be a release workflow of its own.
+
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Reads the pnpm version from `packageManager` in package.json.
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm check
+
+      - run: pnpm typecheck
+
+      # `pnpm test` builds first: the end-to-end tests run the built binary.
+      - run: pnpm test
+
+      - name: Pack
+        run: pnpm pack --dry-run

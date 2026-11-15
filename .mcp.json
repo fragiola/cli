@@ -1,0 +1,8 @@
+{
+    "mcpServers": {
+        "fragiola": {
+            "command": "npx",
+            "args": ["fragiola@latest", "mcp"]
+        }
+    }
+}

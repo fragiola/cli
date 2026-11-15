@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "popup",
+    "type": "registry:lib",
+    "title": "Popup",
+    "description": "The style family of floating surfaces.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+        {
+            "path": "registry/family/popup.tsx",
+            "type": "registry:lib",
+            "target": "@components/atoms/popup.tsx",
+            "content": "export function Popup() {\n    return null;\n}\n"
+        }
+    ]
+}

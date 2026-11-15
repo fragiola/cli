@@ -1,0 +1,72 @@
+{
+    "name": "fragiola",
+    "version": "0.0.0",
+    "description": "The Fragiola CLI: an MCP server that gives AI agents Fragiola UI's source components and the Fragiola libraries' docs and APIs.",
+    "license": "MIT",
+    "type": "module",
+    "author": {
+        "name": "Mauro de Souza",
+        "url": "https://github.com/maurodesouza"
+    },
+    "homepage": "https://fragiola.com/mcp/",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/fragiola/cli.git"
+    },
+    "bugs": "https://github.com/fragiola/cli/issues",
+    "keywords": [
+        "fragiola",
+        "mcp",
+        "model-context-protocol",
+        "ai",
+        "cli",
+        "components"
+    ],
+    "bin": {
+        "fragiola": "./dist/cli.mjs"
+    },
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.mts",
+            "default": "./dist/index.mjs"
+        },
+        "./mcp": {
+            "types": "./dist/mcp.d.mts",
+            "default": "./dist/mcp.mjs"
+        },
+        "./package.json": "./package.json"
+    },
+    "files": [
+        "dist"
+    ],
+    "engines": {
+        "node": ">=24"
+    },
+    "packageManager": "pnpm@11.23.0",
+    "publishConfig": {
+        "access": "public"
+    },
+    "scripts": {
+        "build": "tsdown",
+        "dev": "node src/cli.ts",
+        "check": "biome check",
+        "check:fix": "biome check --write",
+        "typecheck": "tsc --noEmit",
+        "test": "pnpm build && vitest run",
+        "mcp:inspect": "pnpm build && pnpm dlx @modelcontextprotocol/inspector node dist/cli.mjs mcp"
+    },
+    "dependencies": {
+        "@modelcontextprotocol/server": "2.4.0",
+        "commander": "15.1.0",
+        "fuzzysort": "4.0.2",
+        "zod": "4.6.7"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "2.6.6",
+        "@modelcontextprotocol/client": "2.4.0",
+        "@types/node": "24.19.2",
+        "tsdown": "0.23.7",
+        "typescript": "7.0.2",
+        "vitest": "5.1.0"
+    }
+}
