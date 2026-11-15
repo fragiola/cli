@@ -9,7 +9,8 @@ export function createProgram(): Command {
         .description(
             "The Fragiola CLI. Gives AI agents Fragiola UI (source components) and the Fragiola libraries (npm packages) through an MCP server.",
         )
-        .version(pkg.version, "-v, --version", "print the version");
+        .version(pkg.version, "-v, --version", "print the version")
+        .enablePositionalOptions();
 
     program.addCommand(mcpCommand());
 

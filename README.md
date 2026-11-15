@@ -12,6 +12,93 @@ Fragiola has **two kinds of components**, and the server always says which one a
 | **Fragiola UI** | components as **source code**, distributed through the shadcn registry (Base UI + Tailwind v4)                             | `npx shadcn@latest add @fragiola/<name>`: the code is copied into the project, which owns it |
 | **Libraries**   | headless **npm packages**: a core `@fragiola/<x>` and adapters `@fragiola/<x>-react` (Dockable, Data Grid, Grid Layout, …) | `npm install @fragiola/<x> @fragiola/<x>-react`, then import them                            |
 
+## Setup
+
+Run this in your project to configure your AI client:
+
+```bash
+npx fragiola@latest mcp init --client <client>
+```
+
+Without `--client`, it asks which client to configure, or fails with the list when no one can
+answer. It merges into an existing config file and keeps your other servers. Running it again
+changes nothing. It never overwrites a file that is not valid JSON.
+
+| client      | `--client` | what it does                                                                                                    |
+| ----------- | ---------- | --------------------------------------------------------------------------------------------------------------- |
+| Claude Code | `claude`   | writes `.mcp.json`. Restart Claude Code and approve the server (`/mcp` shows it)                                |
+| Cursor      | `cursor`   | writes `.cursor/mcp.json`. Enable the server in Cursor Settings → MCP                                           |
+| VS Code     | `vscode`   | writes `.vscode/mcp.json`. Click Start next to the server, then use Copilot Chat in agent mode                  |
+| OpenCode    | `opencode` | writes `opencode.json`. Restart OpenCode                                                                        |
+| Codex       | `codex`    | prints the block for `~/.codex/config.toml`. Codex keeps its servers outside the project, so nothing is written |
+
+`fragiola` is not added to your dependencies: every client runs `npx fragiola@latest mcp`, so
+it always uses the latest server.
+
+### Manual configuration
+
+Claude Code (`.mcp.json`) and Cursor (`.cursor/mcp.json`):
+
+```json
+{
+    "mcpServers": {
+        "fragiola": { "command": "npx", "args": ["fragiola@latest", "mcp"] }
+    }
+}
+```
+
+VS Code (`.vscode/mcp.json`):
+
+```json
+{
+    "servers": {
+        "fragiola": { "command": "npx", "args": ["fragiola@latest", "mcp"] }
+    }
+}
+```
+
+OpenCode (`opencode.json`):
+
+```json
+{
+    "$schema": "https://opencode.ai/config.json",
+    "mcp": {
+        "fragiola": {
+            "type": "local",
+            "command": ["npx", "fragiola@latest", "mcp"],
+            "enabled": true
+        }
+    }
+}
+```
+
+Codex (`~/.codex/config.toml`):
+
+```toml
+[mcp_servers.fragiola]
+command = "npx"
+args = ["fragiola@latest", "mcp"]
+```
+
+### Example prompts
+
+- "Which Fragiola components exist for forms?"
+- "Add a Fragiola select to this form, styled with the palette roles."
+- "Which Fragiola library gives me dockable panels, and how do I install it?"
+- "Show me Dockable's Tab primitive API."
+- "Build a dashboard with @fragiola/grid-layout and Fragiola UI cards."
+
+### Troubleshooting
+
+- **The server does not respond.** Run `npx fragiola@latest mcp` in a terminal: it should wait
+  silently for input (press Ctrl+C to stop). Check that Node.js 24 or later is on the client's
+  `PATH`, then restart the client.
+- **"does not serve the Fragiola agent index".** The server cannot read `/agents/index.json`.
+  Check `FRAGIOLA_URL` (unset it to use fragiola.com) and the network.
+- **No tools listed.** Make sure the client enabled the `fragiola` server, and restart it after
+  `mcp init`.
+- **Outdated answers.** Responses are cached for one session: restart the server (or the client).
+
 ## MCP server
 
 ```bash
