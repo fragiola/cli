@@ -1,0 +1,243 @@
+{
+    "version": 1,
+    "site": "https://fragiola.com",
+    "overview": "/agents/overview.md",
+    "registry": {
+        "namespace": "@fragiola",
+        "index": "/r/index.json",
+        "item": "/r/{name}.json",
+        "componentsJson": {
+            "@fragiola": {
+                "url": "https://fragiola.com/r/{name}.json"
+            }
+        }
+    },
+    "projects": [
+        {
+            "slug": "ui",
+            "title": "Fragiola UI",
+            "description": "Copy-paste components on Base UI and Tailwind v4, styled with six palette roles.",
+            "kind": "registry",
+            "packages": [],
+            "frameworks": ["react"],
+            "repository": "https://github.com/fragiola/ui",
+            "keywords": ["components", "tailwind"],
+            "docs": "/ui/docs/",
+            "pages": [
+                {
+                    "path": "getting-started/installation",
+                    "title": "Installation",
+                    "description": "Add the @fragiola registry to components.json and install components with the shadcn CLI.",
+                    "section": "Getting Started",
+                    "api": false,
+                    "url": "/ui/docs/getting-started/installation/",
+                    "markdown": "/agents/ui/getting-started/installation.md"
+                },
+                {
+                    "path": "fields/select",
+                    "title": "Select",
+                    "description": "A select field built on Base UI, styled with the palette roles.",
+                    "section": "Fields",
+                    "api": false,
+                    "url": "/ui/docs/fields/select/",
+                    "markdown": "/agents/ui/fields/select.md"
+                },
+                {
+                    "path": "atoms/clickable",
+                    "title": "Clickable",
+                    "description": "The interactive surface every control is painted with.",
+                    "section": "Atoms",
+                    "api": false,
+                    "url": "/ui/docs/atoms/clickable/",
+                    "markdown": "/agents/ui/atoms/clickable.md"
+                },
+                {
+                    "path": "special/dockable",
+                    "title": "Dockable",
+                    "description": "Fragiola UI's styled assembly of @fragiola/dockable-react.",
+                    "section": "Special",
+                    "api": false,
+                    "url": "/ui/docs/special/dockable/",
+                    "markdown": "/agents/ui/special/dockable.md"
+                }
+            ],
+            "examples": [
+                {
+                    "id": "select-basic",
+                    "title": "Basic select",
+                    "level": "fields",
+                    "url": "/ui/examples/select-basic/"
+                }
+            ],
+            "components": [
+                {
+                    "name": "select",
+                    "type": "registry:ui",
+                    "group": "component",
+                    "title": "Select",
+                    "description": "A select field built on Base UI.",
+                    "docs": "fields/select",
+                    "item": "/r/select.json"
+                },
+                {
+                    "name": "clickable",
+                    "type": "registry:ui",
+                    "group": "atom",
+                    "title": "Clickable",
+                    "description": "The interactive surface of every control.",
+                    "docs": "atoms/clickable",
+                    "item": "/r/clickable.json"
+                },
+                {
+                    "name": "popup",
+                    "type": "registry:lib",
+                    "group": "family",
+                    "title": "Popup",
+                    "description": "The style family of floating surfaces.",
+                    "docs": null,
+                    "item": "/r/popup.json"
+                },
+                {
+                    "name": "theme",
+                    "type": "registry:theme",
+                    "group": "theme",
+                    "title": "Theme",
+                    "description": "The base theme: palettes and tokens.",
+                    "docs": null,
+                    "item": "/r/theme.json"
+                },
+                {
+                    "name": "palette-base",
+                    "type": "registry:file",
+                    "group": "palette",
+                    "title": "Base palette",
+                    "description": "The default palette's six roles.",
+                    "docs": null,
+                    "item": "/r/palette-base.json"
+                },
+                {
+                    "name": "dockable",
+                    "type": "registry:ui",
+                    "group": "component",
+                    "title": "Dockable",
+                    "description": "A styled dockable layout on @fragiola/dockable-react.",
+                    "docs": "special/dockable",
+                    "item": "/r/dockable.json"
+                }
+            ],
+            "futureField": "ignored by v1 readers"
+        },
+        {
+            "slug": "dockable",
+            "title": "Dockable",
+            "description": "Headless dockable panels: tabs, tabsets, splitters, borders and popouts.",
+            "kind": "library",
+            "packages": [
+                {
+                    "name": "@fragiola/dockable",
+                    "role": "core"
+                },
+                {
+                    "name": "@fragiola/dockable-react",
+                    "role": "adapter",
+                    "framework": "react"
+                }
+            ],
+            "frameworks": ["react"],
+            "repository": "https://github.com/fragiola/dockable",
+            "keywords": [],
+            "docs": "/dockable/docs/",
+            "pages": [
+                {
+                    "path": "getting-started/introduction",
+                    "title": "Introduction",
+                    "description": "Headless dockable panels for React: tabs, tabsets, splitters, borders and popouts.",
+                    "section": "Getting started",
+                    "api": false,
+                    "url": "/dockable/docs/getting-started/introduction/",
+                    "markdown": "/agents/dockable/getting-started/introduction.md"
+                },
+                {
+                    "path": "concepts/model",
+                    "title": "The model",
+                    "description": "The layout model, its commands and its queries.",
+                    "section": "Concepts",
+                    "api": false,
+                    "url": "/dockable/docs/concepts/model/",
+                    "markdown": "/agents/dockable/concepts/model.md"
+                },
+                {
+                    "path": "api/tab",
+                    "title": "Tab",
+                    "description": "The tab primitive: a button in a tabset's strip.",
+                    "section": "API: primitives (@fragiola/dockable-react)",
+                    "api": true,
+                    "url": "/dockable/docs/api/tab/",
+                    "markdown": "/agents/dockable/api/tab.md"
+                },
+                {
+                    "path": "api/model",
+                    "title": "Model",
+                    "description": "createModel and the five verbs: run, can, check, get, is.",
+                    "section": "API: core (@fragiola/dockable)",
+                    "api": true,
+                    "url": "/dockable/docs/api/model/",
+                    "markdown": "/agents/dockable/api/model.md"
+                }
+            ],
+            "examples": [
+                {
+                    "id": "ide",
+                    "title": "IDE layout",
+                    "description": "An editor with side panels.",
+                    "level": "apps",
+                    "url": "/dockable/examples/ide/"
+                }
+            ],
+            "components": []
+        },
+        {
+            "slug": "grid-layout",
+            "title": "Grid Layout",
+            "description": "Headless draggable and resizable grid layouts for dashboards.",
+            "kind": "library",
+            "packages": [
+                {
+                    "name": "@fragiola/grid-layout",
+                    "role": "core"
+                },
+                {
+                    "name": "@fragiola/grid-layout-react",
+                    "role": "adapter",
+                    "framework": "react"
+                }
+            ],
+            "frameworks": ["react"],
+            "repository": "https://github.com/fragiola/grid-layout",
+            "keywords": [],
+            "docs": "/grid-layout/docs/",
+            "pages": [
+                {
+                    "path": "concepts/model-api",
+                    "title": "Model API",
+                    "description": "Drive the grid layout with run, can, check, get and is.",
+                    "section": "Concepts",
+                    "api": false,
+                    "url": "/grid-layout/docs/concepts/model-api/",
+                    "markdown": "/agents/grid-layout/concepts/model-api.md"
+                },
+                {
+                    "path": "guides/dragging",
+                    "title": "Dragging",
+                    "description": "Drag items with the pointer, touch and the keyboard.",
+                    "section": "Guides",
+                    "api": false,
+                    "url": "/grid-layout/docs/guides/dragging/",
+                    "markdown": "/agents/grid-layout/guides/dragging.md"
+                }
+            ],
+            "examples": [],
+            "components": []
+        }
+    ]
+}

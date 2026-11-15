@@ -1,0 +1,30 @@
+{
+    "name": "fragiola",
+    "homepage": "https://fragiola.com",
+    "items": [
+        {
+            "name": "select",
+            "type": "registry:ui"
+        },
+        {
+            "name": "clickable",
+            "type": "registry:ui"
+        },
+        {
+            "name": "popup",
+            "type": "registry:lib"
+        },
+        {
+            "name": "theme",
+            "type": "registry:theme"
+        },
+        {
+            "name": "palette-base",
+            "type": "registry:file"
+        },
+        {
+            "name": "dockable",
+            "type": "registry:ui"
+        }
+    ]
+}

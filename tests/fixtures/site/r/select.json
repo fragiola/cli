@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "select",
+    "type": "registry:ui",
+    "title": "Select",
+    "description": "A select field built on Base UI.",
+    "dependencies": ["@base-ui/react"],
+    "registryDependencies": ["@fragiola/clickable", "@fragiola/popup"],
+    "files": [
+        {
+            "path": "registry/component/select.tsx",
+            "type": "registry:ui",
+            "target": "@ui/select.tsx",
+            "content": "export function Select() {\n    return null;\n}\n"
+        }
+    ]
+}

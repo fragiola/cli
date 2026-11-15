@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "dockable",
+    "type": "registry:ui",
+    "title": "Dockable",
+    "description": "A styled dockable layout on @fragiola/dockable-react.",
+    "dependencies": ["@fragiola/dockable-react"],
+    "registryDependencies": [],
+    "files": [
+        {
+            "path": "registry/component/dockable.tsx",
+            "type": "registry:ui",
+            "target": "@ui/dockable.tsx",
+            "content": "export function Dockable() {\n    return null;\n}\n"
+        }
+    ]
+}

@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "clickable",
+    "type": "registry:ui",
+    "title": "Clickable",
+    "description": "The interactive surface of every control.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+        {
+            "path": "registry/atom/clickable.tsx",
+            "type": "registry:ui",
+            "target": "@components/atoms/clickable.tsx",
+            "content": "export function Clickable() {\n    return null;\n}\n"
+        }
+    ]
+}

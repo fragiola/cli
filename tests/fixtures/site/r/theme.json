@@ -1,0 +1,17 @@
+{
+    "$schema": "https://ui.shadcn.com/schema/registry-item.json",
+    "name": "theme",
+    "type": "registry:theme",
+    "title": "Theme",
+    "description": "The base theme: palettes and tokens.",
+    "dependencies": [],
+    "registryDependencies": [],
+    "files": [
+        {
+            "path": "registry/theme/theme.tsx",
+            "type": "registry:theme",
+            "target": "@components/atoms/theme.tsx",
+            "content": "export function Theme() {\n    return null;\n}\n"
+        }
+    ]
+}
