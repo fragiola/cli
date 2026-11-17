@@ -58,7 +58,13 @@ describe("list_projects", () => {
         const { text } = await mcp.call("list_projects");
         expect(text).toContain("Fragiola has 3 projects.");
         expect(text).toContain(
-            "- Install: `npm install @fragiola/dockable @fragiola/dockable-react`",
+            [
+                "- Install (one line, for the project's framework; the adapter brings the core):",
+                "  - react: `npm install @fragiola/dockable-react`",
+                "  - vue: `npm install @fragiola/dockable-vue`",
+                "  - angular: `npm install @fragiola/dockable-angular`",
+                "  - no framework (the core alone): `npm install @fragiola/dockable`",
+            ].join("\n"),
         );
         expect(text).toContain(
             "API pages: none; the concepts and guides document it",
@@ -168,7 +174,7 @@ describe("get_component", () => {
         });
         expect(text).toContain('"dockable" names 2 things, in both kinds.');
         expect(text).toContain(
-            "## Dockable (`dockable`) [library · @fragiola/dockable, @fragiola/dockable-react]",
+            "## Dockable (`dockable`) [library · @fragiola/dockable, @fragiola/dockable-react, @fragiola/dockable-vue, @fragiola/dockable-angular]",
         );
         expect(text).toContain(
             "## Dockable (Fragiola UI `dockable`) [ui · source code]",
@@ -280,10 +286,27 @@ describe("get_install_command", () => {
         const { text } = await mcp.call("get_install_command", {
             items: ["dockable"],
         });
-        expect(text).toContain(
-            "npm install @fragiola/dockable @fragiola/dockable-react",
-        );
+        expect(text).toContain("npm install @fragiola/dockable-vue");
         expect(text).toContain("npx shadcn@latest add @fragiola/dockable");
+    });
+
+    it("gives only the adapter asked for, or the framework's", async () => {
+        const byName = await mcp.call("get_install_command", {
+            items: ["@fragiola/dockable-vue"],
+        });
+        expect(byName.text).toContain("npm install @fragiola/dockable-vue");
+        expect(byName.text).not.toContain("dockable-react");
+        const byFramework = await mcp.call("get_install_command", {
+            items: ["dockable", "grid-layout"],
+            framework: "angular",
+        });
+        expect(byFramework.text).toContain(
+            "npm install @fragiola/dockable-angular",
+        );
+        expect(byFramework.text).not.toContain("dockable-react");
+        expect(byFramework.text).toContain(
+            "Grid Layout has no angular adapter. Its frameworks: react.",
+        );
     });
 
     it("separates UI components from libraries", async () => {
@@ -291,8 +314,9 @@ describe("get_install_command", () => {
             items: ["select", "grid-layout"],
         });
         expect(text).toContain("npx shadcn@latest add @fragiola/select");
-        expect(text).toContain(
-            "npm install @fragiola/grid-layout @fragiola/grid-layout-react",
+        expect(text).toContain("npm install @fragiola/grid-layout-react");
+        expect(text).not.toContain(
+            "@fragiola/grid-layout @fragiola/grid-layout-react",
         );
     });
 
