@@ -14,7 +14,7 @@ export const instructions = `Fragiola (https://fragiola.com) is an ecosystem of 
 
 2. Libraries: NPM PACKAGES (kind "library").
    - Headless libraries such as @fragiola/dockable (dockable panels), @fragiola/data-grid (data grid) and @fragiola/grid-layout (dashboard grid layout).
-   - Each has a framework-free core, @fragiola/<x>, and framework adapters, @fragiola/<x>-react. Install both and import them.
+   - Each has a framework-free core, @fragiola/<x>, and one adapter per framework (@fragiola/<x>-react, -vue, -angular, …). Install ONLY the adapter for the project's framework: it depends on the core and re-exports it, so everything is imported from the adapter. Never install several adapters, nor the core next to an adapter.
    - They ship behaviour and accessibility, never CSS. Style them through their data-* and ARIA attributes, or with Fragiola UI.
    - State lives in a model: changes are commands (model.run), and questions go through can, check, get and is.
 

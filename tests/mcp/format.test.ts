@@ -10,6 +10,7 @@ import {
     formatInstall,
     formatSearch,
     installCommands,
+    libraryInstalls,
     pagePackage,
     paginate,
 } from "../../src/mcp/format.ts";
@@ -211,7 +212,16 @@ describe("formatInstall", () => {
         expect(text).toContain("npx shadcn@latest add @fragiola/select");
         expect(text).toContain("## Libraries (npm packages)");
         expect(text).toContain(
-            "npm install @fragiola/dockable @fragiola/dockable-react",
+            "Install the adapter for the project's framework",
+        );
+        expect(text).toContain(
+            "# react\nnpm install @fragiola/dockable-react\n# or: pnpm add @fragiola/dockable-react",
+        );
+        expect(text).toContain(
+            "# no framework (the core alone)\nnpm install @fragiola/dockable\n",
+        );
+        expect(text).not.toContain(
+            "@fragiola/dockable @fragiola/dockable-react",
         );
         expect(text).toContain("Not found: nope.");
     });
@@ -235,12 +245,65 @@ describe("formatInstall", () => {
             ],
             undefined,
         );
-        expect(text).toContain(
-            "npm install @fragiola/dockable @fragiola/dockable-react",
-        );
+        expect(text).toContain("npm install @fragiola/dockable-react");
         expect(text).toContain(
             '"dockable" is also a Fragiola UI component (source code)',
         );
+    });
+
+    it("keeps one framework, and says when a library has no adapter for it", () => {
+        const found = [
+            {
+                name: "dockable",
+                found: [
+                    {
+                        type: "library" as const,
+                        project: library,
+                        packages: library.packages,
+                    },
+                ],
+            },
+        ];
+        const react = formatInstall(found, undefined, "React");
+        expect(react).toContain("npm install @fragiola/dockable-react");
+        expect(react).not.toContain("the core alone");
+        expect(formatInstall(found, undefined, "svelte")).toContain(
+            "Dockable has no svelte adapter. Its frameworks: react.",
+        );
+    });
+});
+
+describe("libraryInstalls", () => {
+    const core = { name: "@fragiola/x", role: "core" as const };
+    const packages = [
+        core,
+        {
+            name: "@fragiola/x-react",
+            role: "adapter" as const,
+            framework: "react",
+        },
+        { name: "@fragiola/x-angular", role: "adapter" as const },
+    ];
+
+    it("gives each adapter alone, then the core alone", () => {
+        expect(libraryInstalls(packages)).toEqual([
+            { framework: "react", package: "@fragiola/x-react" },
+            { framework: "angular", package: "@fragiola/x-angular" },
+            { framework: undefined, package: "@fragiola/x" },
+        ]);
+    });
+
+    it("narrows to a framework, or to the packages asked for", () => {
+        expect(libraryInstalls(packages, "angular")).toEqual([
+            { framework: "angular", package: "@fragiola/x-angular" },
+        ]);
+        expect(libraryInstalls(packages, "vue")).toEqual([]);
+        expect(libraryInstalls([core], "react")).toEqual([
+            { framework: undefined, package: "@fragiola/x" },
+        ]);
+        expect(libraryInstalls([core])).toEqual([
+            { framework: undefined, package: "@fragiola/x" },
+        ]);
     });
 });
 

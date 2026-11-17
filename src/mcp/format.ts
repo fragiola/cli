@@ -58,10 +58,66 @@ export function addCommand(names: string[]): string {
 }
 
 /** `npm install …` and `pnpm add …` for a set of packages. */
-export function installCommands(packages: string[]): string[] {
+export function installCommands(packages: string[]): [string, string] {
     const list = packages.join(" ");
     return [`npm install ${list}`, `pnpm add ${list}`];
 }
+
+/** One way to install a library: for one framework (its adapter), or without one (the core). */
+export interface LibraryInstall {
+    /** `react`, `vue`, …; undefined for the core alone */
+    framework: string | undefined;
+    package: string;
+}
+
+/**
+ * How a library is installed, the way its docs say: the adapter for the project's framework, which
+ * depends on the core and re-exports it, never the core and adapters together. One line per
+ * adapter, then the core alone for framework-free use. `packages` are the ones asked for (a
+ * package name narrows to it); `framework` keeps only that framework's adapter.
+ */
+export function libraryInstalls(
+    packages: Package[],
+    framework?: string,
+): LibraryInstall[] {
+    const adapters: LibraryInstall[] = packages
+        .filter((pkg) => pkg.role === "adapter")
+        .map((pkg) => ({
+            framework: pkg.framework ?? frameworkOf(pkg.name),
+            package: pkg.name,
+        }));
+    const core: LibraryInstall[] = packages
+        .filter((pkg) => pkg.role === "core")
+        .map((pkg) => ({ framework: undefined, package: pkg.name }));
+    // A core asked for by name stays the core: a framework narrows adapters only.
+    if (framework !== undefined && adapters.length > 0) {
+        const wanted = framework.trim().toLowerCase();
+        return adapters.filter(
+            (line) => line.framework?.toLowerCase() === wanted,
+        );
+    }
+    return [...adapters, ...core];
+}
+
+/** `@fragiola/dockable-react` → `react`: the adapter's framework when the index omits it. */
+function frameworkOf(name: string): string | undefined {
+    return name.match(/-([a-z]+)$/)?.[1];
+}
+
+/** `react` / `no framework (the core alone)`: the label of an install line. */
+export function installLabel(line: LibraryInstall): string {
+    return line.framework ?? "no framework (the core alone)";
+}
+
+/** The adapters' frameworks of a library, for "it has: react, vue". */
+export function adapterFrameworks(packages: Package[]): string[] {
+    return libraryInstalls(packages)
+        .map((line) => line.framework)
+        .filter((name): name is string => name !== undefined);
+}
+
+const ADAPTER_NOTE =
+    "Install the adapter for the project's framework: it depends on the core and re-exports it, so the app imports everything from the adapter. Never install several adapters, nor the core next to an adapter.";
 
 /** The package an API page documents: the one named in its section label, else the core. */
 export function pagePackage(
@@ -100,6 +156,13 @@ function packageLine(packages: Package[]): string {
         .join(", ");
 }
 
+/** The "also a library" hint: the install of one framework, and where the others are. */
+function alsoLibrary(project: Project): string {
+    const [first] = libraryInstalls(project.packages);
+    if (!first) return "see get_component";
+    return `\`${installCommands([first.package])[0]}\` for ${installLabel(first)} (get_install_command lists every framework)`;
+}
+
 function componentsJsonSnippet(registry: Registry | undefined): string {
     const registries = registry?.componentsJson ?? {
         "@fragiola": { url: "https://fragiola.com/r/{name}.json" },
@@ -131,9 +194,14 @@ export function formatProjects(
             lines.push(
                 `- Packages: ${packageLine(project.packages) || "none listed"}`,
             );
-            if (project.packages.length > 0) {
+            const installs = libraryInstalls(project.packages);
+            if (installs.length > 0) {
                 lines.push(
-                    `- Install: \`${installCommands(project.packages.map((pkg) => pkg.name))[0]}\``,
+                    "- Install (one line, for the project's framework; the adapter brings the core):",
+                    ...installs.map(
+                        (line) =>
+                            `  - ${installLabel(line)}: \`${installCommands([line.package])[0]}\``,
+                    ),
                 );
             }
             const api = project.pages.filter((page) => page.api).length;
@@ -333,7 +401,9 @@ export function formatLibrary(
     const names = (packages.length > 0 ? packages : project.packages).map(
         (pkg) => pkg.name,
     );
-    const all = project.packages.map((pkg) => pkg.name);
+    const installs = libraryInstalls(
+        packages.length > 0 ? packages : project.packages,
+    );
     const api = project.pages.filter((page) => page.api);
     const lines: string[] = [
         `## ${project.title} (\`${project.slug}\`) ${libraryTag(names)}`,
@@ -343,9 +413,14 @@ export function formatLibrary(
     ];
     if (project.description) lines.push(project.description, "");
     lines.push(`- Packages: ${packageLine(project.packages) || "none listed"}`);
-    if (all.length > 0) {
-        for (const command of installCommands(all))
-            lines.push(`- Install: \`${command}\``);
+    if (installs.length > 0) {
+        lines.push(
+            "- Install (one line, for the project's framework; the adapter brings the core):",
+            ...installs.map((line) => {
+                const [npm, pnpm] = installCommands([line.package]);
+                return `  - ${installLabel(line)}: \`${npm}\` (or \`${pnpm}\`)`;
+            }),
+        );
     }
     lines.push(`- Docs: ${absolute(site, project.docs)}`);
     if (project.repository) lines.push(`- Repository: ${project.repository}`);
@@ -459,9 +534,13 @@ export function formatPage(
 export function formatInstall(
     resolved: { name: string; found: Resolved[] }[],
     registry: Registry | undefined,
+    framework?: string,
 ): string {
     const components = new Set<string>();
-    const packages = new Set<string>();
+    const libraries = new Map<
+        string,
+        { project: Project; packages: Package[] }
+    >();
     const unknown: string[] = [];
     const alsoNamed: string[] = [];
     for (const { name, found } of resolved) {
@@ -475,13 +554,23 @@ export function formatInstall(
         if (first.type === "component") {
             components.add(registryName(first.component, registry?.namespace));
         } else {
-            for (const pkg of first.project.packages) packages.add(pkg.name);
+            const { project } = first;
+            const asked =
+                first.type === "library" ? first.packages : project.packages;
+            const entry = libraries.get(project.slug) ?? {
+                project,
+                packages: [],
+            };
+            for (const pkg of asked) {
+                if (!entry.packages.includes(pkg)) entry.packages.push(pkg);
+            }
+            libraries.set(project.slug, entry);
         }
         for (const other of found.slice(1)) {
             alsoNamed.push(
                 other.type === "component"
                     ? `"${name}" is also a Fragiola UI component (source code): \`${addCommand([registryName(other.component, registry?.namespace)])}\`.`
-                    : `"${name}" is also the ${other.project.title} library (npm packages): \`${installCommands(other.project.packages.map((pkg) => pkg.name))[0]}\`.`,
+                    : `"${name}" is also the ${other.project.title} library (npm packages): ${alsoLibrary(other.project)}.`,
             );
         }
     }
@@ -502,19 +591,26 @@ export function formatInstall(
             "",
         );
     }
-    if (packages.size > 0) {
-        const [npm, pnpm] = installCommands([...packages]);
-        lines.push(
-            "## Libraries (npm packages)",
-            "",
-            "Install the core and the framework adapter, then import them:",
-            "",
-            "```bash",
-            `${npm}`,
-            `# or: ${pnpm}`,
-            "```",
-            "",
-        );
+    if (libraries.size > 0) {
+        lines.push("## Libraries (npm packages)", "", ADAPTER_NOTE, "");
+        for (const { project, packages } of libraries.values()) {
+            const installs = libraryInstalls(packages, framework);
+            lines.push(`### ${project.title} (\`${project.slug}\`)`, "");
+            if (installs.length === 0) {
+                const known = adapterFrameworks(project.packages);
+                lines.push(
+                    `${project.title} has no ${framework} adapter. Its frameworks: ${known.join(", ") || "none (the core alone)"}.`,
+                    "",
+                );
+                continue;
+            }
+            lines.push("```bash");
+            for (const line of installs) {
+                const [npm, pnpm] = installCommands([line.package]);
+                lines.push(`# ${installLabel(line)}`, npm, `# or: ${pnpm}`);
+            }
+            lines.push("```", "");
+        }
     }
     if (alsoNamed.length > 0) {
         lines.push(
