@@ -141,9 +141,18 @@
                     "name": "@fragiola/dockable-react",
                     "role": "adapter",
                     "framework": "react"
+                },
+                {
+                    "name": "@fragiola/dockable-vue",
+                    "role": "adapter",
+                    "framework": "vue"
+                },
+                {
+                    "name": "@fragiola/dockable-angular",
+                    "role": "adapter"
                 }
             ],
-            "frameworks": ["react"],
+            "frameworks": ["react", "vue", "angular"],
             "repository": "https://github.com/fragiola/dockable",
             "keywords": [],
             "docs": "/dockable/docs/",

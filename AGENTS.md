@@ -9,7 +9,7 @@ Fragiola has **two kinds of components**, and every output of this CLI keeps the
 - **Fragiola UI** (`kind: "registry"`): source code distributed through the shadcn registry
   (`npx shadcn@latest add @fragiola/<name>`). The developer copies it and owns it.
 - **Libraries** (`kind: "library"`): headless npm packages, a core `@fragiola/<x>` plus framework
-  adapters `@fragiola/<x>-react`, installed and imported.
+  adapters `@fragiola/<x>-react`: the app installs the adapter for its framework, which brings the core.
 
 The ecosystem guidelines live in `../guidelines` (or the `fragiola-ecosystem` skill). This file
 wins for this repository.

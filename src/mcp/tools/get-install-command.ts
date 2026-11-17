@@ -13,7 +13,7 @@ export function registerGetInstallCommand(
         {
             title: "Get install commands",
             description:
-                "The exact commands to add Fragiola UI components (the components.json registry entry plus `npx shadcn@latest add @fragiola/…`) and to install Fragiola libraries (`npm install @fragiola/<x> @fragiola/<x>-react`). Mixed names give both, separated.",
+                "The exact commands to add Fragiola UI components (the components.json registry entry plus `npx shadcn@latest add @fragiola/…`) and to install Fragiola libraries: one line per framework, each the adapter alone (`npm install @fragiola/<x>-react`), which brings the core. Pass framework to get only that one. Mixed names give both, separated.",
             inputSchema: z.object({
                 items: z
                     .array(z.string().min(1))
@@ -21,10 +21,17 @@ export function registerGetInstallCommand(
                     .describe(
                         'Component, library or package names, e.g. ["select", "sidebar", "dockable"].',
                     ),
+                framework: z
+                    .string()
+                    .min(1)
+                    .optional()
+                    .describe(
+                        'The project\'s framework, e.g. "react", "vue" or "angular": libraries then give only that adapter.',
+                    ),
             }),
             annotations: { readOnlyHint: true, openWorldHint: true },
         },
-        tool("get_install_command", async ({ items }) => {
+        tool("get_install_command", async ({ items, framework }) => {
             const index = await catalog.index();
             const resolved = await Promise.all(
                 items.map(async (name) => ({
@@ -32,7 +39,7 @@ export function registerGetInstallCommand(
                     found: await catalog.resolve(name),
                 })),
             );
-            return formatInstall(resolved, index.registry);
+            return formatInstall(resolved, index.registry, framework);
         }),
     );
 }

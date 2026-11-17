@@ -7,10 +7,10 @@ APIs and how to install each.
 
 Fragiola has **two kinds of components**, and the server always says which one an item is:
 
-| kind            | what it is                                                                                                                 | how it is used                                                                               |
-| --------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| **Fragiola UI** | components as **source code**, distributed through the shadcn registry (Base UI + Tailwind v4)                             | `npx shadcn@latest add @fragiola/<name>`: the code is copied into the project, which owns it |
-| **Libraries**   | headless **npm packages**: a core `@fragiola/<x>` and adapters `@fragiola/<x>-react` (Dockable, Data Grid, Grid Layout, …) | `npm install @fragiola/<x> @fragiola/<x>-react`, then import them                            |
+| kind            | what it is                                                                                                                 | how it is used                                                                                                 |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Fragiola UI** | components as **source code**, distributed through the shadcn registry (Base UI + Tailwind v4)                             | `npx shadcn@latest add @fragiola/<name>`: the code is copied into the project, which owns it                   |
+| **Libraries**   | headless **npm packages**: a core `@fragiola/<x>` and adapters `@fragiola/<x>-react` (Dockable, Data Grid, Grid Layout, …) | `npm install @fragiola/<x>-react` (the adapter for your framework, which brings the core), then import from it |
 
 ## Setup
 
@@ -112,16 +112,16 @@ It speaks MCP over stdio. Nothing but the protocol is written to stdout. Logs go
 
 ### Tools
 
-| tool                    | answers                                                                                                 |
-| ----------------------- | ------------------------------------------------------------------------------------------------------- |
-| `get_fragiola_overview` | what Fragiola is, the two kinds, every project. Start here                                              |
-| `list_projects`         | the projects, their kind, packages and how to install each                                              |
-| `list_components`       | Fragiola UI components and the libraries' API entries, filtered by kind, project or group, paginated    |
-| `search_fragiola`       | fuzzy search over components and every docs page                                                        |
-| `get_component`         | details of named components or libraries; `include_code` returns a UI component's source                |
-| `get_docs`              | a project's page list, or one page as Markdown                                                          |
-| `get_api`               | a library's API reference pages                                                                         |
-| `get_install_command`   | the exact commands: the `components.json` registry and `shadcn add` for UI, `npm install` for libraries |
+| tool                    | answers                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `get_fragiola_overview` | what Fragiola is, the two kinds, every project. Start here                                                                                                   |
+| `list_projects`         | the projects, their kind, packages and how to install each                                                                                                   |
+| `list_components`       | Fragiola UI components and the libraries' API entries, filtered by kind, project or group, paginated                                                         |
+| `search_fragiola`       | fuzzy search over components and every docs page                                                                                                             |
+| `get_component`         | details of named components or libraries; `include_code` returns a UI component's source                                                                     |
+| `get_docs`              | a project's page list, or one page as Markdown                                                                                                               |
+| `get_api`               | a library's API reference pages                                                                                                                              |
+| `get_install_command`   | the exact commands: the `components.json` registry and `shadcn add` for UI, one `npm install <adapter>` per framework for libraries (`framework` narrows it) |
 
 The server also sends `instructions` at initialize, so the agent knows the two kinds before it
 calls anything.

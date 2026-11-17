@@ -153,7 +153,7 @@ describe("resolve", () => {
 
     it("returns both kinds when a name means both", async () => {
         expect(await types("dockable")).toEqual([
-            "library:dockable:@fragiola/dockable+@fragiola/dockable-react",
+            "library:dockable:@fragiola/dockable+@fragiola/dockable-react+@fragiola/dockable-vue+@fragiola/dockable-angular",
             "component:dockable",
         ]);
     });
