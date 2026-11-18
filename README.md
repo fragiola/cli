@@ -154,9 +154,12 @@ transport.
 pnpm install
 pnpm test          # build, then the unit, in-process and stdio tests (no network)
 pnpm mcp:inspect   # the MCP Inspector on the built server
+pnpm check:package # pack the package and smoke-test the tarball
 ```
 
-See [AGENTS.md](AGENTS.md) for the repository's rules.
+A PR that changes what the package ships adds a changeset (`pnpm changeset`); releases are
+published by the release workflow ([docs/releasing.md](docs/releasing.md)). See
+[AGENTS.md](AGENTS.md) for the repository's rules.
 
 ## License
 

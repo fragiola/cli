@@ -35,15 +35,18 @@ wins for this repository.
 
 ## Commands
 
-| command                    | does                                                                           |
-| -------------------------- | ------------------------------------------------------------------------------ |
-| `pnpm install`             | install dependencies                                                           |
-| `pnpm build`               | tsdown → `dist/` (`cli.mjs` is the bin, `index.mjs` and `mcp.mjs` the exports) |
-| `pnpm dev -- <args>`       | run the CLI from source (Node type stripping)                                  |
-| `pnpm test`                | build, then Vitest (unit, in-process MCP and the stdio end-to-end tests)       |
-| `pnpm check` / `check:fix` | Biome lint + format                                                            |
-| `pnpm typecheck`           | TypeScript 7, no emit                                                          |
-| `pnpm mcp:inspect`         | build and open the MCP Inspector on `fragiola mcp`                             |
+| command                    | does                                                                                                                                                                                                                                                   |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `pnpm install`             | install dependencies                                                                                                                                                                                                                                   |
+| `pnpm build`               | tsdown → `dist/` (`cli.mjs` is the bin, `index.mjs` and `mcp.mjs` the exports)                                                                                                                                                                         |
+| `pnpm dev -- <args>`       | run the CLI from source (Node type stripping)                                                                                                                                                                                                          |
+| `pnpm test`                | build, then Vitest (unit, in-process MCP and the stdio end-to-end tests)                                                                                                                                                                               |
+| `pnpm check` / `check:fix` | Biome lint + format                                                                                                                                                                                                                                    |
+| `pnpm typecheck`           | TypeScript 7, no emit                                                                                                                                                                                                                                  |
+| `pnpm mcp:inspect`         | build and open the MCP Inspector on `fragiola mcp`                                                                                                                                                                                                     |
+| `pnpm check:package`       | build, pack with pnpm, check the tarball (files, publint, attw), then install it with npm in a scratch project and run `--version`, both exports and an MCP handshake (`scripts/check-package.ts`; `--tarballs <dir>` checks a packed tarball instead) |
+| `pnpm changeset`           | add a changeset: every PR that changes what the package ships (`changedFilePatterns` in `.changeset/config.json`) carries one; CI's Changesets job fails one that does not                                                                             |
+| `pnpm release:version`     | `changeset version`: only the release workflow runs it (the Version Packages PR); never bump the version by hand                                                                                                                                       |
 
 ## Layout
 
@@ -56,7 +59,10 @@ src/content/         the agent index: schema, fetcher, catalog queries
 src/mcp/             the MCP server (`fragiola/mcp`), its tools and formatters
 src/lib/             small shared helpers (log, package metadata, JSON files)
 tests/               Vitest, mirroring src/; fixtures and the local server in tests/
+scripts/             check-package.ts (`pnpm check:package`, run by CI and the release)
+.changeset/          pending changesets and the Changesets config
 docs/agent-index.md  the contract fragiola.com emits
+docs/releasing.md    the release pipeline and the maintainer's steps
 ```
 
 ## Conventions
@@ -68,4 +74,7 @@ docs/agent-index.md  the contract fragiola.com emits
 - Commits are gitmoji-conventional (`✨ feat: …`, `🐛 fix: …`, `✅ test: …`, `🔧 chore: …`,
   `👷 ci: …`, `📝 docs: …`). Code, docs and commits in English.
 - Branches `<type>/epic-<n>-…`, worktrees under `.worktrees/`.
-- Publishing is not wired yet. Nobody publishes by hand.
+- Releasing is a merge: `.github/workflows/release.yml` opens the Version Packages PR, and merging
+  it publishes through npm trusted publishing (OIDC, no token), packed and published with pnpm.
+  After the maintainer's `0.0.0` stub, nobody but that workflow publishes
+  ([`docs/releasing.md`](docs/releasing.md)).
