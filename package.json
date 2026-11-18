@@ -1,6 +1,6 @@
 {
     "name": "fragiola",
-    "version": "0.0.0",
+    "version": "0.1.0",
     "description": "The Fragiola CLI: an MCP server that gives AI agents Fragiola UI's source components and the Fragiola libraries' docs and APIs.",
     "license": "MIT",
     "type": "module",
